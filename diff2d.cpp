@@ -22,7 +22,6 @@ void mpierror(int code, const char* msg)
 
 int main(int argc, char* argv[])    
 {
-    
     MPI_Init(&argc, &argv);
     
     if (argc < 2) mpierror(1, "No inifile given on command line");
@@ -70,10 +69,10 @@ int main(int argc, char* argv[])
     if (0==rank) {
 	std::cout << "===\n";
 	std::cout 
-	    << "Domain size:\t" << Lx << " x " << Ly << "\n"
-	    << "Grid size:\t" << nx << " x " << ny << "\n"
+	    << "Domain size:\t"   << Lx << " x " << Ly << "\n"
+	    << "Grid size:\t"     << nx << " x " << ny << "\n"
 	    << "MPI processes:\t" << size << "\n"
-	    << "Local grids:\t" << nx << " x {" << alllocalny[0];
+	    << "Local grids:\t"   << nx << " x {" << alllocalny[0];
 	for (int j=1;j<size;j++) {
 	    std::cout << "," << alllocalny[j];
 
@@ -114,7 +113,9 @@ int main(int argc, char* argv[])
             if (rank==0)
                 std::cout << t << "/" << nt << "\n";
             for (size_t i = 0; i < localny; i++) {
-                MPI_File_write_at(f, offset, rhoprv[i+1]+1, nx, MPI_DOUBLE, MPI_STATUS_IGNORE);
+                MPI_File_write_at(f, offset,
+                                  &rhoprv[i+1][1], nx,
+                                  MPI_DOUBLE, MPI_STATUS_IGNORE); 
                 offset += ny*sizeof(double);
             }
             offset += nx*(ny-localny)*sizeof(double);
@@ -129,12 +130,12 @@ int main(int argc, char* argv[])
             if (rank == size-1) rhoprv[localny+1][j] = 0.0; // top boundary
         }
         // ghostcell exchange
-        MPI_Sendrecv(rhoprv[1], nx+nguards, MPI_DOUBLE,
-                     rankdown, 13, rhoprv[localny+1], nx+nguards,
+        MPI_Sendrecv(&rhoprv[1][0], nx+nguards, MPI_DOUBLE,
+                     rankdown, 13, &rhoprv[localny+1][0], nx+nguards,
                      MPI_DOUBLE, rankup, 13,
                      MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        MPI_Sendrecv(rhoprv[localny], nx+nguards, MPI_DOUBLE,
-                     rankup, 14, rhoprv[0], nx+nguards,
+        MPI_Sendrecv(&rhoprv[localny][0], nx+nguards, MPI_DOUBLE,
+                     rankup, 14, &rhoprv[0][0], nx+nguards,
                      MPI_DOUBLE, rankdown, 14,
                      MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         // evolve
@@ -159,7 +160,7 @@ int main(int argc, char* argv[])
 	if (rank==0)
 	    std::cout << t << "/" << nt << "\n";
 	for (size_t i = 0; i < localny; i++) {
-	    MPI_File_write_at(f, offset, rhoprv[i+1]+1, nx, MPI_DOUBLE, MPI_STATUS_IGNORE);
+	    MPI_File_write_at(f, offset, &rhoprv[i+1][1], nx, MPI_DOUBLE, MPI_STATUS_IGNORE);
 	    offset += ny*sizeof(double);
 	}
 	offset += nx*(ny-localny)*sizeof(double);
@@ -170,3 +171,11 @@ int main(int argc, char* argv[])
     return 0;
 }
 
+/*
+
+vtune: Error: Cannot start data collection because the scope of ptrace system call is limited. To enable profiling, please set /proc/sys/kernel/yama/ptrace_scope to 0. To make this change permanent, set kernel.yama.ptrace_scope to 0 in /etc/sysctl.d/10-ptrace.conf and reboot the machine.
+vtune: Warning: Microarchitecture performance insights will not be available. Make sure the sampling driver is installed and enabled on your system.
+
+
+
+ */

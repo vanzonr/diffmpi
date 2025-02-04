@@ -1,6 +1,7 @@
 # Makefile to build executables: double2ascii, diff2d
 CXX = mpicxx
-CXXFLAGS = -Ofast -std=c++17
+CXXFLAGS = -O2 -std=c++17 -g -gdwarf-3 -pg -Wall -Wfatal-errors -Wno-sign-compare 
+LDLIBS = -O3 -g -pg
 
 all: double2ascii diff2d
 
