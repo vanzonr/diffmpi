@@ -14,10 +14,10 @@ int main(int argc, char** argv)
     using namespace std;
     
     // Check if enough command line arguments were given.
-    if (argc<3) {
+    if (argc<4) {
         
-        cerr << "Need two or three parameters, a file and a number of columns,"
-                " and optionally, the number of rows." << endl;
+        cerr << "Need two or three parameters, a file and a number of row,"
+                " and optionally, the number of columns." << endl;
         return 1;
 
     } else {
@@ -29,15 +29,18 @@ int main(int argc, char** argv)
             return 2;
         }
 
-        // Read number of columns, and check if not zero.
+        // Read number of rows, and check if not zero.
         size_t r = atol(argv[2]);
         if (r == 0) { 
             cerr << "Incorrect number of columns '" << argv[2] << "'." << endl;
             return 3;
         }
 
-        // Read number of rows, if given a third command line argument.
-        size_t c = (argc>3)?atol(argv[3]):0;
+        // Read number of first column, if given a third command line argument.
+        size_t c1 = (argc>3)?atol(argv[3]):0;
+
+        // Read number of last columns, if given a third command line argument.
+        size_t c = (argc>3)?atol(argv[4]):0;
 
         // Keep reading rows and printing them to console, until reaching
         // c or end of file.
@@ -47,8 +50,9 @@ int main(int argc, char** argv)
         {
             filein.read((char*)row, sizeof(double)*r);
             if (not filein) break;
-            for (int j = 0; j < r; j++)
-                cout << row[j] << ' ';
+            if (i>=c1)
+                for (int j = 0; j < r; j++)
+                    cout << row[j] << ' ';
             cout << endl;
             i++;
         }
