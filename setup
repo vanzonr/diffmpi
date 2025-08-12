@@ -1,1 +1,1 @@
-module load gcc openmpi rarray gnuplot
+module load gcc openmpi rarray gnuplot boost

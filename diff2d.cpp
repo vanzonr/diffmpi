@@ -226,7 +226,9 @@ int main(int argc, char* argv[])
     rmatrix<double> rhoprv(localny + nguards, nx + nguards);
 
     // Initialize
-    for (int i: xrange(localny+nguards)) 
+    #pragma omp parallel default(none) shared(rhonow,rhoprv,x,y,localny,nguards,nx,Lx,Ly)
+    for (int i: xrange(localny+nguards))
+        #pragma omp for 
         for (int j: xrange(nx+nguards))  
             rhonow[i][j] = rhoprv[i][j] = sin(7*(y[i]+x[j])*3.1415926535/Lx)
                                          *sin(pow(x[j]/Ly,2)*11*3.1415926535);
@@ -264,6 +266,8 @@ int main(int argc, char* argv[])
         world.sendrecv(rhoprv.at(localny),   rankup,   14,
                        rhoprv.at(0),         rankdown, 14);
         // evolve
+        #pragma omp parallel default(none) shared(rhonow,rhoprv,localny,nx,dt,D,dx,dy)
+        #pragma omp for collapse(2)
         for (int i = 1; i <= localny; i++) {
             for (int j = 1; j <= nx; j++) {
                rhonow[i][j] = rhoprv[i][j]

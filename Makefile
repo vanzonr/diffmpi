@@ -1,7 +1,7 @@
 # Makefile to build executables: double2ascii, diff2d
 CXX = mpicxx
-CXXFLAGS = -I. -O0 -std=c++17 -g -gdwarf-3 -pg -Wall -Wfatal-errors -Wno-sign-compare 
-LDLIBS = -O0 -g -pg
+CXXFLAGS = -I. -O3 -march=native -std=c++17 -fopenmp -g -Wall -Wfatal-errors -Wno-sign-compare 
+LDLIBS = -g -fopenmp
 
 all: double2ascii diff2d
 
@@ -22,13 +22,13 @@ clean:
 
 run: double2ascii diff2d
 	$(RM) snapshot.bin snapshot.txt
-	mpirun --mca fs_ufs_lock_algorithm 1 --oversubscribe -np 16 ./diff2d diff2d.ini
+	mpirun --mca fs_ufs_lock_algorithm 1 --oversubscribe -np 8 ./diff2d diff2d.ini
 	./double2ascii snapshot.bin 20 220 240 > snapshot.txt
 	gnuplot --persist snapshot.gp
 
 large: double2ascii diff2dlarge.ini
 	$(RM) snapshot.bin snapshot.txt
-	time mpirun --mca fs_ufs_lock_algorithm 1 --oversubscribe -np 16 ./diff2d diff2dlarge.ini
+	time mpirun --mca fs_ufs_lock_algorithm 1 --oversubscribe -np 8 ./diff2d diff2dlarge.ini
 	./double2ascii snapshot.bin 400 800 1200 > snapshot.txt
 	gnuplot --persist snapshotlarge.gp
 
