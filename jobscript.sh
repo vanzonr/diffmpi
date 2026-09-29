@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -N 1
 #SBATCH -n 192
-#SBATCH --time 12:00:00
+#SBATCH --time 1:00:00
 #SBATCH --output out_%j.txt
 
 module load StdEnv/2023 gcc/12.3 openmpi/4.1.5 boost
